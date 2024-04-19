@@ -1,0 +1,88 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  username String   @id @db.VarChar(100)
+  password String   @db.VarChar(255)
+  email    String   @unique
+  name     String   @db.VarChar(255)
+  token    String?  @db.VarChar(255)
+  role     Role     @default(USER)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
+
+  @@map("users")
+}
+
+model Product {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  price     Float
+  
+  categoryId Int
+  category   Category @relation(field: [categoryId] references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
+
+  @@map("products")
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(100) @unique
+
+  products Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
+
+  @@map("categories")
+}
+
+model Order {
+  id        Int      @id @default(autoincrement())
+  userId    String
+ 
+  user      User     @relation(fields: [userId], references: [username])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
+
+  OrderProduct OrderProduct[]
+
+  @@map("orders")
+}
+
+model OrderDetail {
+  id        Int      @id @default(autoincrement())
+  quantity  Int
+  price     Float
+
+  orderId   Int
+  order     Order    @relation(fields: [orderId], references: [id])
+  
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+
+  @@map("order_details")
+}
+
+
+enum Role {
+  USER
+  ADMIN
+}
