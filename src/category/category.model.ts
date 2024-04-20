@@ -1,7 +1,10 @@
+import { ProductResponse } from 'src/product/product.model';
+
 export class CategoryResponse {
   id?: number;
   name: string;
   description?: string;
+  products?: ProductResponse[];
 }
 
 export class CreateCategoryRequest {
