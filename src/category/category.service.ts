@@ -90,7 +90,7 @@ export class CategoryService {
       // throw new NotFoundException('Category not found');
     }
 
-    return this.toCategoryResponse(category);
+    return this.toCategoryResponse(category, true);
   }
 
   async updateCategory(
@@ -158,11 +158,15 @@ export class CategoryService {
     return this.toCategoryResponse(category);
   }
 
-  toCategoryResponse(category: CategoryResponse): CategoryResponse {
+  toCategoryResponse(
+    category: CategoryResponse,
+    withProducts: boolean = false,
+  ): CategoryResponse {
     return {
       // id: category.id,
       name: category.name,
       // description: category.description,
+      products: withProducts ? category.products : undefined,
     };
   }
 }

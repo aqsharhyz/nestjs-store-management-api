@@ -169,7 +169,7 @@ export class ProductService {
     return this.toProductResponse(product);
   }
 
-  toProductResponse(product: Product): ProductResponse {
+  toProductResponse(product: ProductResponse | Product): ProductResponse {
     return {
       id: product.id,
       code: product.code,
