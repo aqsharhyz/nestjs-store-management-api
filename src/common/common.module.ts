@@ -10,6 +10,7 @@ import { ErrorFilter } from './error.filter';
 import { AdminGuard } from './admin.guard';
 import { SeederService } from './seeder/seeder.service';
 import { SeederModule } from './seeder/seeder.module';
+// import { AuthGuard } from './auth.guard';
 
 @Global()
 @Module({
@@ -35,6 +36,10 @@ import { SeederModule } from './seeder/seeder.module';
       provide: APP_GUARD,
       useClass: AdminGuard,
     },
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: AuthGuard,
+    // },
     SeederService,
   ],
   exports: [PrismaService, ValidationService],
