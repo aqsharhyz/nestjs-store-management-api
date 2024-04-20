@@ -13,8 +13,8 @@ import {
   UpdateUserProfileRequest,
   UpdateUserPasswordRequest,
   UserResponse,
-} from '../model/user.model';
-import { WebResponse } from '../model/web.model';
+} from './user.model';
+import { WebResponse } from '../common/web.model';
 import { Auth } from '../common/auth.decorator';
 import { User } from '@prisma/client';
 
@@ -56,10 +56,10 @@ export class UserController {
   @Patch('/current')
   @HttpCode(200)
   async update(
-    @Auth() user: User,
+    @Auth('username') username: string,
     @Body() request: UpdateUserProfileRequest,
   ): Promise<WebResponse<UserResponse>> {
-    const result = await this.userService.updateProfile(user, request);
+    const result = await this.userService.updateProfile(username, request);
     return {
       data: result,
     };
@@ -68,10 +68,10 @@ export class UserController {
   @Patch('/current/password')
   @HttpCode(200)
   async updatePassword(
-    @Auth() user: User,
+    @Auth('username') username: string,
     @Body() request: UpdateUserPasswordRequest,
   ): Promise<WebResponse<UserResponse>> {
-    const result = await this.userService.updatePassword(user, request);
+    const result = await this.userService.updatePassword(username, request);
     return {
       data: result,
     };
@@ -79,8 +79,10 @@ export class UserController {
 
   @Delete('/current')
   @HttpCode(200)
-  async logout(@Auth() user: User): Promise<WebResponse<boolean>> {
-    await this.userService.logout(user);
+  async logout(
+    @Auth('username') username: string,
+  ): Promise<WebResponse<boolean>> {
+    await this.userService.logout(username);
     return {
       data: true,
     };

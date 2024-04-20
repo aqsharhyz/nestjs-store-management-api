@@ -5,8 +5,11 @@ import { PrismaService } from './prisma.service';
 import { ValidationService } from './validation.service';
 import * as winston from 'winston';
 import { AuthMiddleware } from './auth.middleware';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ErrorFilter } from './error.filter';
+import { AdminGuard } from './admin.guard';
+import { SeederService } from './seeder/seeder.service';
+import { SeederModule } from './seeder/seeder.module';
 
 @Global()
 @Module({
@@ -19,6 +22,7 @@ import { ErrorFilter } from './error.filter';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    SeederModule,
   ],
   providers: [
     PrismaService,
@@ -27,6 +31,11 @@ import { ErrorFilter } from './error.filter';
       provide: APP_FILTER,
       useClass: ErrorFilter,
     },
+    {
+      provide: APP_GUARD,
+      useClass: AdminGuard,
+    },
+    SeederService,
   ],
   exports: [PrismaService, ValidationService],
 })

@@ -1,4 +1,4 @@
-import { HttpException, Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { PrismaService } from '../common/prisma.service';
 import { ValidationService } from '../common/validation.service';
@@ -9,7 +9,7 @@ import {
   UpdateUserPasswordRequest,
   UpdateUserProfileRequest,
   UserResponse,
-} from '../model/user.model';
+} from './user.model';
 import { UserValidation } from './user.validation';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuid } from 'uuid';
@@ -25,6 +25,7 @@ export class UserService {
 
   async register(request: RegisterUserRequest): Promise<UserResponse> {
     this.logger.debug(`Register new user ${JSON.stringify(request)}`);
+
     const registerRequest: RegisterUserRequest =
       this.validationService.validate(UserValidation.REGISTER, request);
 
@@ -35,7 +36,17 @@ export class UserService {
     });
 
     if (totalUserWithSameUsername != 0) {
-      throw new HttpException('Username already exists', 400);
+      throw new HttpException('Username already exists', HttpStatus.CONFLICT);
+    }
+
+    const totalUserWithSameEmail = await this.prismaService.user.count({
+      where: {
+        email: registerRequest.email,
+      },
+    });
+
+    if (totalUserWithSameEmail != 0) {
+      throw new HttpException('Email already exists', HttpStatus.CONFLICT);
     }
 
     registerRequest.password = await bcrypt.hash(registerRequest.password, 10);
@@ -44,11 +55,15 @@ export class UserService {
       data: registerRequest,
     });
 
-    return this.toUserResponse(user);
+    return await this.login({
+      username: user.username,
+      password: request.password,
+    });
   }
 
   async login(request: LoginUserRequest): Promise<UserResponse> {
     this.logger.debug(`UserService.login(${JSON.stringify(request)})`);
+
     const loginRequest: LoginUserRequest = this.validationService.validate(
       UserValidation.LOGIN,
       request,
@@ -61,15 +76,22 @@ export class UserService {
     });
 
     if (!user) {
-      throw new HttpException('Invalid username or password', 401);
+      throw new HttpException(
+        'Invalid username or password',
+        HttpStatus.FORBIDDEN,
+      );
     }
 
     const isPasswordMatch = await bcrypt.compare(
       loginRequest.password,
       user.password,
     );
+
     if (!isPasswordMatch) {
-      throw new HttpException('Invalid username or password', 401);
+      throw new HttpException(
+        'Invalid username or password',
+        HttpStatus.FORBIDDEN,
+      );
     }
 
     user = await this.prismaService.user.update({
@@ -89,18 +111,19 @@ export class UserService {
   }
 
   async updateProfile(
-    user: User,
+    username: string,
     request: UpdateUserProfileRequest,
   ): Promise<UserResponse> {
     this.logger.debug(
-      `UserService.update(${user.username}, ${JSON.stringify(request)})`,
+      `UserService.update(${username}, ${JSON.stringify(request)})`,
     );
+
     const updateRequest: UpdateUserProfileRequest =
       this.validationService.validate(UserValidation.UPDATE_PROFILE, request);
 
     const updatedUser = await this.prismaService.user.update({
       where: {
-        username: user.username,
+        username: username,
       },
       data: updateRequest,
     });
@@ -109,18 +132,19 @@ export class UserService {
   }
 
   async updatePassword(
-    user: User,
+    username: string,
     request: UpdateUserPasswordRequest,
   ): Promise<UserResponse> {
     this.logger.debug(
-      `UserService.updatePassword(${user.username}, ${JSON.stringify(request)})`,
+      `UserService.updatePassword(${username}, ${JSON.stringify(request)})`,
     );
 
     const updateRequest: UpdateUserPasswordRequest =
       this.validationService.validate(UserValidation.UPDATE_PASSWORD, request);
+
     const updatedUser = await this.prismaService.user.update({
       where: {
-        username: user.username,
+        username: username,
       },
       data: {
         password: await bcrypt.hash(updateRequest.new_password, 10),
@@ -130,10 +154,12 @@ export class UserService {
     return this.toUserResponse(updatedUser);
   }
 
-  async logout(user: User): Promise<UserResponse> {
+  async logout(username: string): Promise<UserResponse> {
+    this.logger.debug(`UserService.logout(${username})`);
+
     const result = await this.prismaService.user.update({
       where: {
-        username: user.username,
+        username: username,
       },
       data: {
         token: null,
@@ -143,10 +169,25 @@ export class UserService {
     return this.toUserResponse(result);
   }
 
-  async toUserResponse(user: User): Promise<UserResponse> {
+  async getAllUser() {}
+
+  async getAllAdmin() {}
+
+  async adminUpdateUser() {}
+
+  async promoteToAdmin() {}
+
+  async forgotPassword() {}
+
+  async resetPassword() {}
+
+  async deleteUser() {}
+
+  async adminDeleteUser() {}
+
+  toUserResponse(user: User): UserResponse {
     return {
       username: user.username,
-      email: user.email,
       name: user.name,
       token: user.token,
     };

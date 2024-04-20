@@ -14,75 +14,127 @@ datasource db {
 }
 
 model User {
-  username String   @id @db.VarChar(100)
-  password String   @db.VarChar(255)
-  email    String   @unique
-  name     String   @db.VarChar(255)
-  token    String?  @db.VarChar(255)
-  role     Role     @default(USER)
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt @default(now())
+  username String  @id @db.VarChar(100)
+  password String  @db.VarChar(255)
+  email    String  @unique
+  name     String  @db.VarChar(255)
+  token    String? @db.VarChar(255)
+  role     Role    @default(USER)
+  phone    String  @db.VarChar(15)
+  address  String? @db.VarChar(255)
+
+  createdAt DateTime  @default(now())
+  order     Order[]
+  Payment   Payment[]
 
   @@map("users")
 }
 
-model Product {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  price     Float
-  
-  categoryId Int
-  category   Category @relation(field: [categoryId] references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt @default(now())
-
-  @@map("products")
-}
-
 model Category {
-  id        Int      @id @default(autoincrement())
-  name      String   @db.VarChar(100) @unique
+  id   Int    @id @default(autoincrement())
+  name String @unique @db.VarChar(100)
 
   products Product[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt @default(now())
 
   @@map("categories")
 }
 
+model Product {
+  id              Int    @id @default(autoincrement())
+  code            String @unique @db.VarChar(15)
+  name            String @unique @db.VarChar(100)
+  price           Float
+  quantityInStock Int
+  description String @db.VarChar(1000)
+
+  categoryId Int
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  supplierId Int
+  supplier   Supplier @relation(fields: [supplierId], references: [id])
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @default(now()) @updatedAt
+  OrderDetail OrderDetail[]
+
+  @@map("products")
+}
+
 model Order {
-  id        Int      @id @default(autoincrement())
-  userId    String
- 
-  user      User     @relation(fields: [userId], references: [username])
+  id Int @id @default(autoincrement())
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt @default(now())
+  username String
+  user   User   @relation(fields: [username], references: [username])
 
-  OrderProduct OrderProduct[]
+  shipperId Int
+  shipper   Shipper @relation(fields: [shipperId], references: [id])
+
+  orderDate    DateTime  @default(now())
+  requiredDate DateTime
+  shippedDate  DateTime?
+
+  shippingPrice Float
+  status        OrderStatus @default(In_Process)
+  comment       String?
+
+  orderDetails OrderDetail[]
 
   @@map("orders")
 }
 
 model OrderDetail {
-  id        Int      @id @default(autoincrement())
-  quantity  Int
-  price     Float
+  id Int @id @default(autoincrement())
 
-  orderId   Int
-  order     Order    @relation(fields: [orderId], references: [id])
-  
+  quantityOrdered Int
+  priceEach       Float
+
+  orderId Int
+  order   Order @relation(fields: [orderId], references: [id])
+
   productId Int
-  product   Product  @relation(fields: [productId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
 
-  @@map("order_details")
+  @@map("orderDetails")
 }
 
+model Supplier {
+  id      Int    @id @default(autoincrement())
+  name    String @db.VarChar(100)
+  phone   String @db.VarChar(15)
+  address String @db.VarChar(255)
+
+  products Product[]
+
+  @@map("suppliers")
+}
+
+model Shipper {
+  id    Int     @id @default(autoincrement())
+  name  String  @db.VarChar(100)
+  phone String  @db.VarChar(15)
+  order Order[]
+
+  @@map("shippers")
+}
+
+model Payment {
+  id       Int    @id @default(autoincrement())
+  username String
+  user     User   @relation(fields: [username], references: [username])
+
+  paymentVendor String   @db.VarChar(100)
+  paymentDate   DateTime
+  amount        Float
+}
 
 enum Role {
   USER
   ADMIN
+}
+
+enum OrderStatus {
+  In_Process
+  Shipped
+  Cancelled
+  Completed
 }
