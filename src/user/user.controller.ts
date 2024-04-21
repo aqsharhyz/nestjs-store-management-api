@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   HttpCode,
+  HttpStatus,
   Patch,
   Post,
 } from '@nestjs/common';
@@ -23,7 +24,7 @@ export class UserController {
   constructor(private userService: UserService) {}
 
   @Post('/register')
-  @HttpCode(200)
+  @HttpCode(HttpStatus.CREATED)
   async register(
     @Body() request: RegisterUserRequest,
   ): Promise<WebResponse<UserResponse>> {
@@ -34,7 +35,7 @@ export class UserController {
   }
 
   @Post('/login')
-  @HttpCode(200)
+  @HttpCode(HttpStatus.OK)
   async login(
     @Body() request: RegisterUserRequest,
   ): Promise<WebResponse<UserResponse>> {
@@ -45,7 +46,7 @@ export class UserController {
   }
 
   @Get('/current')
-  @HttpCode(200)
+  @HttpCode(HttpStatus.OK)
   async get(@Auth() user: User): Promise<WebResponse<UserResponse>> {
     const result = await this.userService.get(user);
     return {
@@ -54,7 +55,7 @@ export class UserController {
   }
 
   @Patch('/current')
-  @HttpCode(200)
+  @HttpCode(HttpStatus.OK)
   async update(
     @Auth('username') username: string,
     @Body() request: UpdateUserProfileRequest,
@@ -66,19 +67,19 @@ export class UserController {
   }
 
   @Patch('/current/password')
-  @HttpCode(200)
+  @HttpCode(HttpStatus.OK)
   async updatePassword(
-    @Auth('username') username: string,
+    @Auth() user: User,
     @Body() request: UpdateUserPasswordRequest,
   ): Promise<WebResponse<UserResponse>> {
-    const result = await this.userService.updatePassword(username, request);
+    const result = await this.userService.updatePassword(user, request);
     return {
       data: result,
     };
   }
 
   @Delete('/current')
-  @HttpCode(200)
+  @HttpCode(HttpStatus.OK)
   async logout(
     @Auth('username') username: string,
   ): Promise<WebResponse<boolean>> {

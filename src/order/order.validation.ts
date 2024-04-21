@@ -12,7 +12,7 @@ export class OrderValidation {
     orderDate: z.date().max(new Date()),
     requiredDate: z.date(),
     shippedDate: z.date().optional(),
-    orderDetail: z.array(
+    orderDetails: z.array(
       z.object({
         productId: z.number().int().positive(),
         quantityOrdered: z.number().int().positive(),

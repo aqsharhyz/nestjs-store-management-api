@@ -63,7 +63,7 @@ export class UserValidation {
   });
 
   static readonly UPDATE_PASSWORD: ZodType = z.object({
-    old_password: z.string().min(6).max(100),
+    old_password: z.string().min(1).max(100),
     new_password: z.string().min(6).max(100).refine(passwordValidation, {
       message:
         'Password must contain at least one digit, one lowercase letter, one uppercase letter, and one special character',

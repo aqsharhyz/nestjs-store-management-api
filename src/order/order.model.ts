@@ -8,7 +8,7 @@ export class OrderResponse {
   orderDate: Date;
   requiredDate: Date;
   shippedDate: Date;
-  orderDetail: OrderDetailResponse[];
+  orderDetails?: OrderDetailResponse[];
 }
 
 export class CreateOrderRequest {
@@ -19,7 +19,7 @@ export class CreateOrderRequest {
   orderDate: Date;
   requiredDate: Date;
   shippedDate?: Date;
-  orderDetail: OrderDetailRequest[];
+  orderDetails: OrderDetailRequest[];
 }
 
 export class OrderDetailRequest {

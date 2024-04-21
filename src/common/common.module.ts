@@ -8,8 +8,8 @@ import { AuthMiddleware } from './auth.middleware';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ErrorFilter } from './error.filter';
 import { AdminGuard } from './admin.guard';
-import { SeederService } from './seeder/seeder.service';
-import { SeederModule } from './seeder/seeder.module';
+import { SeederService } from '../../test/seeder/seeder.service';
+import { SeederModule } from '../../test/seeder/seeder.module';
 // import { AuthGuard } from './auth.guard';
 
 @Global()
@@ -42,7 +42,11 @@ import { SeederModule } from './seeder/seeder.module';
     // },
     SeederService,
   ],
-  exports: [PrismaService, ValidationService],
+  exports: [
+    PrismaService,
+    ValidationService,
+    // { provide: APP_GUARD, useClass: AdminGuard },
+  ],
 })
 export class CommonModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

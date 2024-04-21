@@ -78,7 +78,7 @@ export class UserService {
     if (!user) {
       throw new HttpException(
         'Invalid username or password',
-        HttpStatus.FORBIDDEN,
+        HttpStatus.UNAUTHORIZED,
       );
     }
 
@@ -90,7 +90,7 @@ export class UserService {
     if (!isPasswordMatch) {
       throw new HttpException(
         'Invalid username or password',
-        HttpStatus.FORBIDDEN,
+        HttpStatus.UNAUTHORIZED,
       );
     }
 
@@ -132,19 +132,23 @@ export class UserService {
   }
 
   async updatePassword(
-    username: string,
+    user: User,
     request: UpdateUserPasswordRequest,
   ): Promise<UserResponse> {
     this.logger.debug(
-      `UserService.updatePassword(${username}, ${JSON.stringify(request)})`,
+      `UserService.updatePassword(${user.username}, ${JSON.stringify(request)})`,
     );
 
     const updateRequest: UpdateUserPasswordRequest =
       this.validationService.validate(UserValidation.UPDATE_PASSWORD, request);
 
+    if (!(await bcrypt.compare(updateRequest.old_password, user.password))) {
+      throw new HttpException('Invalid old password', HttpStatus.UNAUTHORIZED);
+    }
+
     const updatedUser = await this.prismaService.user.update({
       where: {
-        username: username,
+        username: user.username,
       },
       data: {
         password: await bcrypt.hash(updateRequest.new_password, 10),
