@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
-import { PrismaService } from 'src/common/prisma.service';
-import { ValidationService } from 'src/common/validation.service';
+import { PrismaService } from '../common/prisma.service';
+import { ValidationService } from '../common/validation.service';
 import { Logger } from 'winston';
 import {
   CreateSupplierRequest,
@@ -10,7 +10,7 @@ import {
 } from './supplier.model';
 import { SupplierValidation } from './supplier.validation';
 import { Supplier } from '@prisma/client';
-import { ProductService } from 'src/product/product.service';
+import { ProductService } from '../product/product.service';
 
 @Injectable()
 export class SupplierService {
@@ -88,7 +88,15 @@ export class SupplierService {
     const updateRequest: UpdateSupplierRequest =
       this.validationService.validate(SupplierValidation.UPDATE, request);
 
-    const supplier = await this.prismaService.supplier.update({
+    let supplier = await this.prismaService.supplier.findUnique({
+      where: { id: supplierId },
+    });
+
+    if (!supplier) {
+      throw new HttpException('Supplier not found', HttpStatus.NOT_FOUND);
+    }
+
+    supplier = await this.prismaService.supplier.update({
       where: { id: supplierId },
       data: updateRequest,
     });
@@ -102,13 +110,17 @@ export class SupplierService {
   ): Promise<SupplierResponse> {
     this.logger.debug(`User ${username} is deleting supplier ${supplierId}`);
 
-    const supplier = await this.prismaService.supplier.delete({
+    let supplier = await this.prismaService.supplier.findUnique({
       where: { id: supplierId },
     });
 
     if (!supplier) {
       throw new HttpException('Supplier not found', HttpStatus.NOT_FOUND);
     }
+
+    supplier = await this.prismaService.supplier.delete({
+      where: { id: supplierId },
+    });
 
     return this.toSupplierResponse(supplier);
   }

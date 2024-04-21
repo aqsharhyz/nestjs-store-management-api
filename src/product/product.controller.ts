@@ -12,14 +12,14 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
-import { Auth } from 'src/common/auth.decorator';
+import { Auth } from '../common/auth.decorator';
 import {
   CreateProductRequest,
   ProductResponse,
   updateProductRequest,
 } from './product.model';
-import { WebResponse } from 'src/common/web.model';
-import { AdminGuard } from 'src/common/admin.guard';
+import { WebResponse } from '../common/web.model';
+import { AdminGuard } from '../common/admin.guard';
 
 @Controller('product')
 export class ProductController {

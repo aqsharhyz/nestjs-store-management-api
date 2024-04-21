@@ -22,6 +22,8 @@ describe('UserController', () => {
 
     logger = app.get(WINSTON_MODULE_PROVIDER);
     testService = app.get(TestService);
+
+    await testService.deleteAll();
   });
 
   afterAll(async () => {
@@ -29,9 +31,7 @@ describe('UserController', () => {
   });
 
   describe('POST /api/user/register', () => {
-    beforeEach(async () => {
-      await testService.deleteAll();
-    });
+    beforeEach(async () => {});
 
     it('should be rejected if request is invalid', async () => {
       const response = await request(app.getHttpServer())
@@ -143,9 +143,7 @@ describe('UserController', () => {
   });
 
   describe('POST /api/user/login', () => {
-    beforeEach(async () => {
-      await testService.deleteAll();
-    });
+    beforeEach(async () => {});
 
     it('should be able to login with username', async () => {
       await testService.createUser();
@@ -229,7 +227,6 @@ describe('UserController', () => {
 
   describe('GET /api/user/current', () => {
     beforeEach(async () => {
-      await testService.deleteAll();
       await testService.createUser();
     });
 
@@ -259,7 +256,6 @@ describe('UserController', () => {
 
   describe('PATCH /api/user/current', () => {
     beforeEach(async () => {
-      await testService.deleteAll();
       await testService.createUser();
     });
 
@@ -309,7 +305,6 @@ describe('UserController', () => {
 
   describe('PATCH /api/user/current/password', () => {
     beforeEach(async () => {
-      await testService.deleteAll();
       await testService.createUser();
     });
 
@@ -393,7 +388,6 @@ describe('UserController', () => {
 
   describe('DELETE /api/user/current', () => {
     beforeEach(async () => {
-      await testService.deleteAll();
       await testService.createUser();
     });
 

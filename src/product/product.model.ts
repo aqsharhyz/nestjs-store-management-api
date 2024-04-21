@@ -1,4 +1,4 @@
-import { CategoryResponse } from 'src/category/category.model';
+import { CategoryResponse } from '../category/category.model';
 
 export class ProductResponse {
   id: number;

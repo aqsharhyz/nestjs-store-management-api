@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
@@ -11,16 +12,16 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { SupplierService } from './supplier.service';
-import { AdminGuard } from 'src/common/admin.guard';
-import { Auth } from 'src/common/auth.decorator';
+import { AdminGuard } from '../common/admin.guard';
+import { Auth } from '../common/auth.decorator';
 import {
   CreateSupplierRequest,
   SupplierResponse,
   UpdateSupplierRequest,
 } from './supplier.model';
-import { WebResponse } from 'src/common/web.model';
+import { WebResponse } from '../common/web.model';
 
-@Controller('supplier')
+@Controller('/api/supplier')
 @UseGuards(AdminGuard)
 export class SupplierController {
   constructor(private supplierService: SupplierService) {}
@@ -29,7 +30,7 @@ export class SupplierController {
   @HttpCode(HttpStatus.CREATED)
   async createSupplier(
     @Auth('username') username: string,
-    request: CreateSupplierRequest,
+    @Body() request: CreateSupplierRequest,
   ): Promise<WebResponse<SupplierResponse>> {
     const supplier = await this.supplierService.createSupplier(
       username,
@@ -69,7 +70,7 @@ export class SupplierController {
   async updateSupplier(
     @Auth('username') username: string,
     @Param('supplierId', ParseIntPipe) supplierId: number,
-    request: UpdateSupplierRequest,
+    @Body() request: UpdateSupplierRequest,
   ): Promise<WebResponse<SupplierResponse>> {
     const supplier = await this.supplierService.updateSupplier(
       username,

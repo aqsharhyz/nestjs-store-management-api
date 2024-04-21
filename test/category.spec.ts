@@ -28,7 +28,7 @@ describe('CategoryController', () => {
   });
 
   afterAll(async () => {
-    // await testService.deleteAll();
+    await testService.deleteAll();
   });
 
   describe('POST /api/category', () => {
@@ -159,9 +159,15 @@ describe('CategoryController', () => {
       expect(response.status).toBe(200);
       expect(response.body.data.length).toBe(3);
     });
+
+    it.todo('should be able to search categories');
   });
 
-  describe('GET /api/category/:id/products', () => {});
+  describe('GET /api/category/:id/products', () => {
+    it.todo('should be able to get category with its products');
+
+    it.todo('should be rejected if category is not found');
+  });
 
   describe('PATCH /api/category/:id', () => {
     beforeEach(async () => {

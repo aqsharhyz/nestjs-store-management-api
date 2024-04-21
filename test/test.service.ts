@@ -9,28 +9,29 @@ export class TestService {
 
   async deleteAll() {
     await this.deleteUser();
-    await this.deleteAdmin();
+    // await this.deleteAdmin();
     await this.deleteCategory();
+    await this.deleteSupplier();
   }
 
   async deleteUser() {
-    await this.prismaService.user.deleteMany({
-      where: {
-        username: 'test',
-      },
-    });
+    await this.prismaService.user.deleteMany();
   }
 
-  async deleteAdmin() {
-    await this.prismaService.user.deleteMany({
-      where: {
-        username: 'admin',
-      },
-    });
-  }
+  // async deleteAdmin() {
+  //   await this.prismaService.user.deleteMany({
+  //     where: {
+  //       username: 'admin',
+  //     },
+  //   });
+  // }
 
   async deleteCategory() {
     await this.prismaService.category.deleteMany();
+  }
+
+  async deleteSupplier() {
+    await this.prismaService.supplier.deleteMany();
   }
 
   async deleteProduct() {
@@ -47,6 +48,14 @@ export class TestService {
 
   async getCategory(): Promise<Category> {
     return this.prismaService.category.findFirst({
+      where: {
+        name: 'test',
+      },
+    });
+  }
+
+  async getSupplier() {
+    return this.prismaService.supplier.findFirst({
       where: {
         name: 'test',
       },
@@ -94,6 +103,27 @@ export class TestService {
       await this.prismaService.category.create({
         data: {
           name: `test${i}`,
+        },
+      });
+    }
+  }
+
+  async createSupplier(name: string = 'test') {
+    await this.prismaService.supplier.create({
+      data: {
+        name: name,
+        phone: '45566778899',
+        address: 'test address',
+      },
+    });
+  }
+
+  async createSuppliers() {
+    for (let i = 0; i < 3; i++) {
+      await this.prismaService.supplier.create({
+        data: {
+          name: `test${i}`,
+          phone: '45566778899',
         },
       });
     }
