@@ -32,15 +32,15 @@ import { SeederModule } from '../../test/seeder/seeder.module';
       provide: APP_FILTER,
       useClass: ErrorFilter,
     },
-    {
-      provide: APP_GUARD,
-      useClass: AdminGuard,
-    },
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: AdminGuard,
+    // },
     // {
     //   provide: APP_GUARD,
     //   useClass: AuthGuard,
     // },
-    SeederService,
+    // SeederService,
   ],
   exports: [
     PrismaService,

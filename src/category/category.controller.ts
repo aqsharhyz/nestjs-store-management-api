@@ -1,25 +1,27 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
   HttpCode,
   HttpStatus,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
 import { CategoryService } from './category.service';
-import { Auth } from 'src/common/auth.decorator';
+import { Auth } from '../common/auth.decorator';
 import {
   CategoryResponse,
   CreateCategoryRequest,
   UpdateCategoryRequest,
 } from './category.model';
-import { WebResponse } from 'src/common/web.model';
-import { AdminGuard } from 'src/common/admin.guard';
+import { WebResponse } from '../common/web.model';
+import { AdminGuard } from '../common/admin.guard';
 
-@Controller('category')
+@Controller('/api/category')
 export class CategoryController {
   constructor(private categoryService: CategoryService) {}
 
@@ -28,7 +30,7 @@ export class CategoryController {
   @UseGuards(AdminGuard)
   async createCategory(
     @Auth('username') username: string,
-    request: CreateCategoryRequest,
+    @Body() request: CreateCategoryRequest,
   ): Promise<WebResponse<CategoryResponse>> {
     const category = await this.categoryService.createCategory(
       username,
@@ -40,7 +42,7 @@ export class CategoryController {
   @Get('/:categoryId')
   @HttpCode(HttpStatus.OK)
   async getCategory(
-    @Param('categoryId') categoryId: number,
+    @Param('categoryId', ParseIntPipe) categoryId: number,
   ): Promise<WebResponse<CategoryResponse>> {
     const category = await this.categoryService.getCategory(categoryId);
     return { data: category };
@@ -56,7 +58,7 @@ export class CategoryController {
   @Get('/:categoryId/products')
   @HttpCode(HttpStatus.OK)
   async getCategoryWithProducts(
-    @Param('categoryId') categoryId: number,
+    @Param('categoryId', ParseIntPipe) categoryId: number,
   ): Promise<WebResponse<CategoryResponse>> {
     const category =
       await this.categoryService.getCategoryWithProducts(categoryId);
@@ -68,8 +70,8 @@ export class CategoryController {
   @UseGuards(AdminGuard)
   async updateCategory(
     @Auth('username') username: string,
-    @Param('categoryId') categoryId: number,
-    request: UpdateCategoryRequest,
+    @Param('categoryId', ParseIntPipe) categoryId: number,
+    @Body() request: UpdateCategoryRequest,
   ): Promise<WebResponse<CategoryResponse>> {
     const category = await this.categoryService.updateCategory(
       username,
@@ -84,7 +86,7 @@ export class CategoryController {
   @UseGuards(AdminGuard)
   async deleteCategory(
     @Auth('username') username: string,
-    @Param('categoryId') categoryId: number,
+    @Param('categoryId', ParseIntPipe) categoryId: number,
   ): Promise<WebResponse<CategoryResponse>> {
     const category = await this.categoryService.removeCategory(
       username,

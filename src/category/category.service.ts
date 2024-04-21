@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
-import { ValidationService } from 'src/common/validation.service';
+import { ValidationService } from '../common/validation.service';
 import { Logger } from 'winston';
 import {
   CategoryResponse,
@@ -8,7 +8,7 @@ import {
   UpdateCategoryRequest,
 } from './category.model';
 import { CategoryValidation } from './category.validation';
-import { PrismaService } from 'src/common/prisma.service';
+import { PrismaService } from '../common/prisma.service';
 
 @Injectable()
 export class CategoryService {
@@ -43,9 +43,7 @@ export class CategoryService {
     }
 
     const category = await this.prismaService.category.create({
-      data: {
-        ...createRequest,
-      },
+      data: createRequest,
     });
 
     return this.toCategoryResponse(category);
@@ -105,13 +103,24 @@ export class CategoryService {
     const updateRequest: CreateCategoryRequest =
       this.validationService.validate(CategoryValidation.UPDATE, request);
 
+    const checkCategoryIfExists = await this.prismaService.category.findFirst({
+      where: {
+        id: categoryId,
+      },
+    });
+
+    if (!checkCategoryIfExists) {
+      throw new HttpException('Category is not found', HttpStatus.NOT_FOUND);
+    }
+
     if (updateRequest.name) {
       const categoryWithSameName = await this.prismaService.category.findFirst({
         where: {
           name: updateRequest.name,
         },
       });
-      if (categoryWithSameName.id !== categoryId) {
+
+      if (categoryWithSameName && categoryWithSameName.id !== categoryId) {
         throw new HttpException(
           'Category with the same name already exists',
           HttpStatus.CONFLICT,
@@ -123,9 +132,7 @@ export class CategoryService {
       where: {
         id: categoryId,
       },
-      data: {
-        ...updateRequest,
-      },
+      data: updateRequest,
     });
 
     return this.toCategoryResponse(category);
