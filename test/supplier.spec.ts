@@ -251,7 +251,19 @@ describe('SupplierController', () => {
       expect(response.body.errors).toBeDefined();
     });
 
-    it.todo('should be able to get all products of a supplier');
+    it('should be able to get all products of a supplier', async () => {
+      await testService.createProducts();
+      const supplier = await testService.getSupplier('test0');
+      const response = await request(app.getHttpServer())
+        .get(`/api/supplier/${supplier.id}/products`)
+        .set('Authorization', 'admin');
+
+      logger.info(response.body);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.name).toBe('test0');
+      expect(response.body.data.products.length).toBe(7);
+    });
   });
 
   describe('PATCH /api/supplier/:supplierId', () => {

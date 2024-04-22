@@ -74,6 +74,7 @@ export class CategoryService {
   }
 
   async getCategoryWithProducts(categoryId: number): Promise<CategoryResponse> {
+    this.logger.debug(`Getting category with products: ${categoryId}`);
     const category = await this.prismaService.category.findFirst({
       where: {
         id: categoryId,

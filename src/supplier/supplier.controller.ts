@@ -60,9 +60,9 @@ export class SupplierController {
   async getProducts(
     @Param('supplierId', ParseIntPipe) supplierId: number,
   ): Promise<WebResponse<SupplierResponse>> {
-    const products =
+    const supplier =
       await this.supplierService.getSupplierWithProducts(supplierId);
-    return { data: products };
+    return { data: supplier };
   }
 
   @Patch('/:supplierId')

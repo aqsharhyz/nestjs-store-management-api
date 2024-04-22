@@ -160,13 +160,62 @@ describe('CategoryController', () => {
       expect(response.body.data.length).toBe(3);
     });
 
+    it('should not be rejected if user is not authenticated', async () => {
+      const response = await request(app.getHttpServer()).get('/api/category');
+
+      logger.info(response.body);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.length).toBe(3);
+    });
+
     it.todo('should be able to search categories');
   });
 
   describe('GET /api/category/:id/products', () => {
-    it.todo('should be able to get category with its products');
+    beforeEach(async () => {
+      await testService.createProducts();
+    });
 
-    it.todo('should be rejected if category is not found');
+    it('should be able to get category with its products', async () => {
+      // await testService.createCategory();
+      // await testService.createProduct();
+      const category = await testService.getCategory('test0');
+      const response = await request(app.getHttpServer()).get(
+        `/api/category/${category.id}/products`,
+      );
+
+      logger.info(response.body);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.name).toBe('test0');
+      expect(response.body.data.products.length).toBe(7);
+    });
+
+    it('should not be rejected if user is not authenticated', async () => {
+      const category = await testService.getCategory('test1');
+      const response = await request(app.getHttpServer()).get(
+        `/api/category/${category.id}/products`,
+      );
+
+      logger.info(response.body);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.name).toBe('test1');
+      expect(response.body.data.products.length).toBe(7);
+    });
+
+    it('should be rejected if category is not found', async () => {
+      const category = await testService.getCategory('test2');
+      const response = await request(app.getHttpServer())
+        .get(`/api/category/${category.id + 1}/products`)
+        .set('Authorization', 'admin');
+
+      logger.info(response.body);
+
+      expect(response.status).toBe(404);
+      expect(response.body.errors).toBeDefined();
+    });
   });
 
   describe('PATCH /api/category/:id', () => {

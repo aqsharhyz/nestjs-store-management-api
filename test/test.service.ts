@@ -146,7 +146,7 @@ export class TestService {
   async createProducts() {
     await this.createCategories();
     await this.createSuppliers();
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 21; i++) {
       await this.prismaService.product.create({
         data: {
           name: `test${i}`,
@@ -155,7 +155,7 @@ export class TestService {
           description: `test${i}`,
           quantityInStock: 10 + 2 * i,
           categoryId: (i % 3) + (await this.getCategory('test0')).id,
-          supplierId: (1 % 3) + (await this.getSupplier('test0')).id,
+          supplierId: (i % 3) + (await this.getSupplier('test0')).id,
         },
       });
     }

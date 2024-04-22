@@ -64,7 +64,7 @@ export class SupplierService {
   async getSupplierWithProducts(supplierId: number): Promise<SupplierResponse> {
     this.logger.debug(`Getting supplier ${supplierId} with products`);
 
-    const supplier = await this.prismaService.supplier.findUnique({
+    const supplier = await this.prismaService.supplier.findFirst({
       where: { id: supplierId },
       include: { products: true },
     });
