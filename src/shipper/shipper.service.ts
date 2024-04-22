@@ -1,14 +1,14 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
-import { PrismaService } from 'src/common/prisma.service';
-import { ValidationService } from 'src/common/validation.service';
+import { PrismaService } from '../common/prisma.service';
+import { ValidationService } from '../common/validation.service';
 import { Logger } from 'winston';
 import {
   CreateShipperRequest,
   ShipperResponse,
   UpdateShipperRequest,
 } from './shipper.model';
-import { SupplierValidation } from 'src/supplier/supplier.validation';
+import { SupplierValidation } from '../supplier/supplier.validation';
 import { Shipper } from '@prisma/client';
 
 @Injectable()
@@ -99,9 +99,17 @@ export class ShipperService {
     );
 
     const updateRequest: UpdateShipperRequest = this.validationService.validate(
-      SupplierValidation.CREATE,
+      SupplierValidation.UPDATE,
       request,
     );
+
+    let shipper = await this.prismaService.shipper.findUnique({
+      where: { id: shipperId },
+    });
+
+    if (!shipper) {
+      throw new HttpException('Shipper not found', HttpStatus.NOT_FOUND);
+    }
 
     if (updateRequest.name) {
       const shipperWithSameName = await this.prismaService.shipper.findFirst({
@@ -116,7 +124,7 @@ export class ShipperService {
       }
     }
 
-    const shipper = await this.prismaService.shipper.update({
+    shipper = await this.prismaService.shipper.update({
       where: { id: shipperId },
       data: updateRequest,
     });
@@ -130,13 +138,17 @@ export class ShipperService {
   ): Promise<ShipperResponse> {
     this.logger.debug(`User ${username} is deleting shipper ${shipperId}`);
 
-    const shipper = await this.prismaService.shipper.delete({
+    const shipper = await this.prismaService.shipper.findUnique({
       where: { id: shipperId },
     });
 
     if (!shipper) {
       throw new HttpException('Shipper not found', HttpStatus.NOT_FOUND);
     }
+
+    await this.prismaService.shipper.delete({
+      where: { id: shipperId },
+    });
 
     return this.toShipperResponse(shipper);
   }

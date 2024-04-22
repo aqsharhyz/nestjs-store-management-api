@@ -9,6 +9,7 @@ export class TestService {
 
   async deleteAll() {
     await this.deleteProduct();
+    await this.deleteShipper();
     await this.deleteSupplier();
     await this.deleteCategory();
     await this.deleteUser();
@@ -28,6 +29,10 @@ export class TestService {
 
   async deleteProduct() {
     await this.prismaService.product.deleteMany();
+  }
+
+  async deleteShipper() {
+    await this.prismaService.shipper.deleteMany();
   }
 
   async getUser(): Promise<User> {
@@ -58,6 +63,14 @@ export class TestService {
     return this.prismaService.product.findFirst({
       where: {
         name: name,
+      },
+    });
+  }
+
+  async getShipper(name: string = 'test') {
+    return this.prismaService.shipper.findFirst({
+      where: {
+        name,
       },
     });
   }
@@ -156,6 +169,26 @@ export class TestService {
           quantityInStock: 10 + 2 * i,
           categoryId: (i % 3) + (await this.getCategory('test0')).id,
           supplierId: (i % 3) + (await this.getSupplier('test0')).id,
+        },
+      });
+    }
+  }
+
+  async createShipper(name: string = 'test') {
+    await this.prismaService.shipper.create({
+      data: {
+        name,
+        phone: '45566778899',
+      },
+    });
+  }
+
+  async createShippers() {
+    for (let i = 0; i < 3; i++) {
+      await this.prismaService.shipper.create({
+        data: {
+          name: `test${i}`,
+          phone: '45566778899',
         },
       });
     }

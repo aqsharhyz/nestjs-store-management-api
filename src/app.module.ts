@@ -15,7 +15,7 @@ import { ShipperModule } from './shipper/shipper.module';
     CategoryModule,
     SupplierModule,
     ProductModule,
-    // ShipperModule,
+    ShipperModule,
     // OrderModule,
     // AdminModule,
   ],

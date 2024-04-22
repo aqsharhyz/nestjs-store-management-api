@@ -7,9 +7,7 @@ import * as winston from 'winston';
 import { AuthMiddleware } from './auth.middleware';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ErrorFilter } from './error.filter';
-import { AdminGuard } from './admin.guard';
-import { SeederService } from '../../test/seeder/seeder.service';
-import { SeederModule } from '../../test/seeder/seeder.module';
+// import { AdminGuard } from './admin.guard';
 // import { AuthGuard } from './auth.guard';
 
 @Global()
@@ -23,7 +21,7 @@ import { SeederModule } from '../../test/seeder/seeder.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    SeederModule,
+    // SeederModule,
   ],
   providers: [
     PrismaService,
