@@ -8,23 +8,15 @@ export class TestService {
   constructor(private prismaService: PrismaService) {}
 
   async deleteAll() {
-    await this.deleteUser();
-    // await this.deleteAdmin();
-    await this.deleteCategory();
+    await this.deleteProduct();
     await this.deleteSupplier();
+    await this.deleteCategory();
+    await this.deleteUser();
   }
 
   async deleteUser() {
     await this.prismaService.user.deleteMany();
   }
-
-  // async deleteAdmin() {
-  //   await this.prismaService.user.deleteMany({
-  //     where: {
-  //       username: 'admin',
-  //     },
-  //   });
-  // }
 
   async deleteCategory() {
     await this.prismaService.category.deleteMany();
@@ -46,18 +38,26 @@ export class TestService {
     });
   }
 
-  async getCategory(): Promise<Category> {
+  async getCategory(name: string = 'test'): Promise<Category> {
     return this.prismaService.category.findFirst({
       where: {
-        name: 'test',
+        name: name,
       },
     });
   }
 
-  async getSupplier() {
+  async getSupplier(name: string = 'test') {
     return this.prismaService.supplier.findFirst({
       where: {
-        name: 'test',
+        name,
+      },
+    });
+  }
+
+  async getProduct(name: string = 'test') {
+    return this.prismaService.product.findFirst({
+      where: {
+        name: name,
       },
     });
   }
@@ -130,9 +130,34 @@ export class TestService {
   }
 
   async createProduct() {
-    // await this.prismaService.product.create({
-    //   data: {
-    //   },
-    // });
+    await this.prismaService.product.create({
+      data: {
+        name: 'test',
+        price: 100,
+        code: 'test',
+        description: 'test',
+        quantityInStock: 10,
+        categoryId: await this.getCategory().then((category) => category.id),
+        supplierId: await this.getSupplier().then((supplier) => supplier.id),
+      },
+    });
+  }
+
+  async createProducts() {
+    await this.createCategories();
+    await this.createSuppliers();
+    for (let i = 0; i < 20; i++) {
+      await this.prismaService.product.create({
+        data: {
+          name: `test${i}`,
+          price: 100 + i,
+          code: `test${i}`,
+          description: `test${i}`,
+          quantityInStock: 10 + 2 * i,
+          categoryId: (i % 3) + (await this.getCategory('test0')).id,
+          supplierId: (1 % 3) + (await this.getSupplier('test0')).id,
+        },
+      });
+    }
   }
 }

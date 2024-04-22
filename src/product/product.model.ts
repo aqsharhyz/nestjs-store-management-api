@@ -39,6 +39,20 @@ export class updateProductStockRequest {
   quantity: number;
 }
 
-export class SearchProductRequest {}
+export class SearchProductRequest {
+  code?: string;
+  name?: string;
+  price?: number;
+  description?: string;
+  quantityInStock?: number;
+  categoryId?: number;
+  supplierId?: number;
+  page?: number;
+  size?: number;
+  sort?: string;
+}
 
-export class SimpleSearchProductRequest {}
+export class SimpleSearchProductRequest {
+  search?: string;
+  page?: number;
+}

@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
@@ -16,12 +17,13 @@ import { Auth } from '../common/auth.decorator';
 import {
   CreateProductRequest,
   ProductResponse,
+  SearchProductRequest,
   updateProductRequest,
 } from './product.model';
 import { WebResponse } from '../common/web.model';
 import { AdminGuard } from '../common/admin.guard';
 
-@Controller('product')
+@Controller('/api/products')
 export class ProductController {
   constructor(private productService: ProductService) {}
 
@@ -30,7 +32,7 @@ export class ProductController {
   @UseGuards(AdminGuard)
   async createProduct(
     @Auth('username') username: string,
-    request: CreateProductRequest,
+    @Body() request: CreateProductRequest,
   ): Promise<WebResponse<ProductResponse>> {
     const product = await this.productService.createProduct(username, request);
     return {
@@ -38,7 +40,7 @@ export class ProductController {
     };
   }
 
-  @Get('/productId')
+  @Get('/:productId')
   @HttpCode(HttpStatus.OK)
   async getProduct(
     @Param('productId', ParseIntPipe) productId: number,
@@ -51,11 +53,64 @@ export class ProductController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  async getListProducts() {}
+  async getListProducts(
+    @Query('code') code?: string,
+    @Query('name') name?: string,
+    @Query('description') description?: string,
+    // @Query('price', ParseIntPipe) price?: number,
+    // @Query('stock', ParseIntPipe) quantityInStock?: number,
+    @Query('page', new ParseIntPipe({ optional: true })) page: number = 1,
+    @Query('size', new ParseIntPipe({ optional: true })) size: number = 10,
+  ): Promise<WebResponse<ProductResponse[]>> {
+    const request: SearchProductRequest = {
+      code: code,
+      name: name,
+      description: description,
+      // price: price,
+      // quantityInStock: quantityInStock,
+      page: page,
+      size: size,
+    };
+    return await this.productService.getListProducts(request);
+  }
 
   @Get('/search')
   @HttpCode(HttpStatus.OK)
-  async searchProduct() {}
+  async searchProduct(
+    @Query('q') q: string,
+    @Query('page', new ParseIntPipe({ optional: true })) page: number = 1,
+  ): Promise<WebResponse<ProductResponse[]>> {
+    const request = {
+      search: q,
+      page,
+    };
+    return await this.productService.simpleSearchProduct(request);
+  }
+
+  // @Get()
+  // @HttpCode(200)
+  // async getAll(
+  //   @Auth() user: User,
+  //   @Query('title') title?: string,
+  //   @Query('author') author?: string,
+  //   @Query('publisher') publisher?: string,
+  //   @Query('year', new ParseIntPipe({ optional: true })) year?: number,
+  //   @Query('page', new ParseIntPipe({ optional: true })) page: number = 1,
+  //   @Query('size', new ParseIntPipe({ optional: true })) size: number = 10,
+  //   @Query('isFinished', new ParseBoolPipe({ optional: true }))
+  //   isFinished?: boolean,
+  // ): Promise<WebResponse<BookResponse[]>> {
+  //   const request: SearchBookRequest = {
+  //     title: title,
+  //     author: author,
+  //     publisher: publisher,
+  //     year: year,
+  //     page: page,
+  //     size: size,
+  //     isFinished: isFinished,
+  //   };
+  //   return await this.bookService.getAll(user, request);
+  // }
 
   @Patch('/:productId')
   @HttpCode(HttpStatus.OK)
@@ -63,7 +118,7 @@ export class ProductController {
   async updateProduct(
     @Auth('username') username: string,
     @Param('productId', ParseIntPipe) productId: number,
-    request: updateProductRequest,
+    @Body() request: updateProductRequest,
   ): Promise<WebResponse<ProductResponse>> {
     const product = await this.productService.updateProduct(
       username,

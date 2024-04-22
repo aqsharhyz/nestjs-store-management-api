@@ -13,6 +13,7 @@ import {
 import { ProductValidation } from './product.validation';
 import { Product } from '@prisma/client';
 import { Logger } from 'winston';
+import { WebResponse } from 'src/common/web.model';
 
 @Injectable()
 export class ProductService {
@@ -35,18 +36,39 @@ export class ProductService {
       request,
     );
 
-    // const productWithSameCode = await this.prismaService.product.findFirst({
-    //   where: {
-    //     code: createRequest.code,
-    //   },
-    // });
+    const productWithSameCodeOrName =
+      await this.prismaService.product.findFirst({
+        where: {
+          OR: [{ code: createRequest.code }, { name: createRequest.name }],
+        },
+      });
 
-    // if (productWithSameCode) {
-    //   throw new HttpException(
-    //     'Product with the same code already exists',
-    //     HttpStatus.CONFLICT,
-    //   );
-    // }
+    if (productWithSameCodeOrName) {
+      throw new HttpException(
+        'Product with the same code already exists',
+        HttpStatus.CONFLICT,
+      );
+    }
+
+    const checkCategory = await this.prismaService.category.findFirst({
+      where: {
+        id: createRequest.categoryId,
+      },
+    });
+
+    if (!checkCategory) {
+      throw new HttpException('Category is not found', HttpStatus.NOT_FOUND);
+    }
+
+    const checkSupplier = await this.prismaService.supplier.findFirst({
+      where: {
+        id: createRequest.supplierId,
+      },
+    });
+
+    if (!checkSupplier) {
+      throw new HttpException('Supplier is not found', HttpStatus.NOT_FOUND);
+    }
 
     const product = await this.prismaService.product.create({
       data: {
@@ -66,16 +88,154 @@ export class ProductService {
       },
     });
 
+    if (!product) {
+      throw new HttpException('Product is not found', HttpStatus.NOT_FOUND);
+    }
+
     return this.toProductResponse(product);
   }
 
-  // async getProducts(
-  //   request?: SearchProductRequest,
-  // ): Promise<ProductResponse[]> {}
+  async getListProducts(
+    request?: SearchProductRequest,
+  ): Promise<WebResponse<ProductResponse[]>> {
+    this.logger.debug(
+      `ProductService.getProducts({request: ${JSON.stringify(request)})`,
+    );
 
-  // async simpleSearchProduct(
-  //   request: SimpleSearchProductRequest,
-  // ): Promise<ProductResponse[]> {}
+    const searchRequest: SearchProductRequest = this.validationService.validate(
+      ProductValidation.SEARCH,
+      request,
+    );
+
+    const filter = [];
+
+    if (searchRequest.code) {
+      filter.push({
+        code: {
+          contains: searchRequest.code,
+          mode: 'insensitive',
+        },
+      });
+    }
+
+    if (searchRequest.name) {
+      filter.push({
+        name: {
+          contains: searchRequest.name,
+          mode: 'insensitive',
+        },
+      });
+    }
+
+    if (searchRequest.description) {
+      filter.push({
+        description: {
+          contains: searchRequest.description,
+          mode: 'insensitive',
+        },
+      });
+    }
+
+    //price
+
+    //quantityInStock
+
+    //category
+
+    //supplier
+
+    //   categoryId?: number;
+    //   supplierId?: number;
+
+    const skip = (searchRequest.page - 1) * searchRequest.size;
+
+    const products = await this.prismaService.product.findMany({
+      where: {
+        AND: filter,
+      },
+      take: searchRequest.size,
+      skip,
+    });
+
+    const total = await this.prismaService.product.count({
+      where: {
+        AND: filter,
+      },
+    });
+    return {
+      data: products.map((product) => this.toProductResponse(product)),
+      paging: {
+        current_page: searchRequest.page,
+        size: products.length,
+        total_page: Math.ceil(total / searchRequest.size),
+      },
+    };
+  }
+
+  // export class SearchProductRequest {
+  //   code?: string;
+  //   name?: string;
+  //   price?: number;
+  //   description?: string;
+  //   quantityInStock?: number;
+
+  //   page?: number;
+  //   size?: number;
+  //   sort?: string;
+  // }
+
+  async simpleSearchProduct(
+    request: SimpleSearchProductRequest,
+  ): Promise<WebResponse<ProductResponse[]>> {
+    this.logger.debug(
+      `ProductService.simpleSearchProduct({request: ${JSON.stringify(request)})`,
+    );
+
+    const searchRequest: SimpleSearchProductRequest =
+      this.validationService.validate(ProductValidation.SIMPLE_SEARCH, request);
+
+    const filter = {
+      OR: [
+        {
+          code: {
+            contains: searchRequest.search,
+            mode: 'insensitive',
+          },
+        },
+        {
+          name: {
+            contains: searchRequest.search,
+            mode: 'insensitive',
+          },
+        },
+        {
+          description: {
+            contains: searchRequest.search,
+            mode: 'insensitive',
+          },
+        },
+      ],
+    };
+
+    const product = await this.prismaService.product.findMany({
+      where: filter,
+      take: 20,
+      skip: (searchRequest.page - 1) * 20,
+    });
+
+    const total: number = await this.prismaService.product.count({
+      where: filter,
+    });
+
+    return {
+      paging: {
+        size: product.length,
+        current_page: searchRequest.page,
+        total_page: Math.ceil(total / 20),
+      },
+      data: product.map((product) => this.toProductResponse(product)),
+    };
+  }
 
   async updateProduct(
     username: string,
@@ -91,18 +251,55 @@ export class ProductService {
       request,
     );
 
-    //db validate
     if (updateRequest.code) {
       const productWithSameCode = await this.prismaService.product.findFirst({
         where: {
           code: updateRequest.code,
         },
       });
-      if (productWithSameCode.id !== productId) {
+      if (productWithSameCode && productWithSameCode.id !== productId) {
         throw new HttpException(
           'Product with the same code already exists',
           HttpStatus.CONFLICT,
         );
+      }
+    }
+
+    if (updateRequest.name) {
+      const productWithSameName = await this.prismaService.product.findFirst({
+        where: {
+          name: updateRequest.name,
+        },
+      });
+      if (productWithSameName && productWithSameName.id !== productId) {
+        throw new HttpException(
+          'Product with the same name already exists',
+          HttpStatus.CONFLICT,
+        );
+      }
+    }
+
+    if (updateRequest.categoryId) {
+      const checkCategory = await this.prismaService.category.findFirst({
+        where: {
+          id: updateRequest.categoryId,
+        },
+      });
+
+      if (!checkCategory) {
+        throw new HttpException('Category is not found', HttpStatus.NOT_FOUND);
+      }
+    }
+
+    if (updateRequest.supplierId) {
+      const checkSupplier = await this.prismaService.supplier.findFirst({
+        where: {
+          id: updateRequest.supplierId,
+        },
+      });
+
+      if (!checkSupplier) {
+        throw new HttpException('Supplier is not found', HttpStatus.NOT_FOUND);
       }
     }
 
@@ -169,7 +366,7 @@ export class ProductService {
     return this.toProductResponse(product);
   }
 
-  toProductResponse(product: ProductResponse | Product): ProductResponse {
+  toProductResponse(product: ProductResponse): ProductResponse {
     return {
       id: product.id,
       code: product.code,
