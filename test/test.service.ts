@@ -8,6 +8,8 @@ export class TestService {
   constructor(private prismaService: PrismaService) {}
 
   async deleteAll() {
+    await this.deleteOrderDetail();
+    await this.deleteOrder();
     await this.deleteProduct();
     await this.deleteShipper();
     await this.deleteSupplier();
@@ -33,6 +35,14 @@ export class TestService {
 
   async deleteShipper() {
     await this.prismaService.shipper.deleteMany();
+  }
+
+  async deleteOrder() {
+    await this.prismaService.order.deleteMany();
+  }
+
+  async deleteOrderDetail() {
+    await this.prismaService.orderDetail.deleteMany();
   }
 
   async getUser(): Promise<User> {
@@ -71,6 +81,14 @@ export class TestService {
     return this.prismaService.shipper.findFirst({
       where: {
         name,
+      },
+    });
+  }
+
+  async getOrder(comment: string = 'test') {
+    return this.prismaService.order.findFirst({
+      where: {
+        comment,
       },
     });
   }
@@ -191,6 +209,59 @@ export class TestService {
           phone: '45566778899',
         },
       });
+    }
+  }
+
+  async createOrder() {
+    await this.prismaService.order.create({
+      data: {
+        shippingPrice: 10,
+        comment: 'test',
+        shipperId: (await this.getShipper()).id,
+        orderDate: new Date(),
+        requiredDate: new Date(),
+        username: 'test',
+      },
+    });
+
+    const orderDetail = [
+      {
+        productId: (await this.getProduct()).id,
+        quantityOrdered: 2,
+        priceEach: 100,
+        orderId: (await this.getOrder()).id,
+      },
+    ];
+
+    await this.prismaService.orderDetail.createMany({
+      data: orderDetail,
+    });
+  }
+
+  async createOrders() {
+    await this.createShippers();
+    await this.createProducts();
+    for (let i = 0; i < 5; i++) {
+      await this.prismaService.order.create({
+        data: {
+          shippingPrice: 10,
+          comment: `test${i}`,
+          shipperId: (i % 3) + (await this.getShipper('test0')).id,
+          orderDate: new Date(),
+          requiredDate: new Date(),
+          username: 'test',
+        },
+      });
+      for (let j = 0; j < 3; j++) {
+        await this.prismaService.orderDetail.create({
+          data: {
+            productId: (j % 3) + (await this.getProduct('test0')).id,
+            quantityOrdered: j * 2,
+            priceEach: 100 + j * 2,
+            orderId: (await this.getOrder(`test${i}`)).id,
+          },
+        });
+      }
     }
   }
 }

@@ -71,9 +71,7 @@ export class ProductService {
     }
 
     const product = await this.prismaService.product.create({
-      data: {
-        ...createRequest,
-      },
+      data: createRequest,
     });
 
     return this.toProductResponse(product);
@@ -367,13 +365,14 @@ export class ProductService {
   }
 
   toProductResponse(product: ProductResponse): ProductResponse {
-    return {
-      id: product.id,
-      code: product.code,
-      name: product.name,
-      description: product.description,
-      price: product.price,
-      quantityInStock: product.quantityInStock,
-    };
+    return product;
+    // return {
+    //   id: product.id,
+    //   code: product.code,
+    //   name: product.name,
+    //   description: product.description,
+    //   price: product.price,
+    //   quantityInStock: product.quantityInStock,
+    // };
   }
 }

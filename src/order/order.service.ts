@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
-import { PrismaService } from 'src/common/prisma.service';
-import { ValidationService } from 'src/common/validation.service';
+import { PrismaService } from '../common/prisma.service';
+import { ValidationService } from '../common/validation.service';
 import { Logger } from 'winston';
 import { Order, Shipper } from '@prisma/client';
 import {
@@ -20,64 +20,93 @@ export class OrderService {
     private validationService: ValidationService,
   ) {}
 
-  // async createOrder(
-  //   username: string,
-  //   request: CreateOrderRequest,
-  // ): Promise<OrderResponse> {
-  //   this.logger.debug(
-  //     `User ${username} is creating an order ${JSON.stringify(request)}`,
-  //   );
+  async createOrder(
+    username: string,
+    request: CreateOrderRequest,
+  ): Promise<OrderResponse> {
+    this.logger.debug(
+      `User ${username} is creating an order ${JSON.stringify(request)}`,
+    );
 
-  //   const createRequest: CreateOrderRequest = this.validationService.validate(
-  //     OrderValidation.CREATE,
-  //     request,
-  //   );
+    const createRequest: CreateOrderRequest = this.validationService.validate(
+      OrderValidation.CREATE,
+      request,
+    );
 
-  //   const shipperExists = await this.checkIfShipperExists(
-  //     createRequest.shipperId,
-  //   );
+    const shipperExists = await this.checkIfShipperExists(
+      createRequest.shipperId,
+    );
 
-  //   if (!shipperExists) {
-  //     throw new HttpException('Shipper not found', HttpStatus.NOT_FOUND);
-  //   }
+    if (!shipperExists) {
+      throw new HttpException('Shipper not found', HttpStatus.BAD_REQUEST);
+    }
 
-  //   for (const productOrder of createRequest.orderDetails) {
-  //     await this.checkIfProductExists(
-  //       productOrder.productId,
-  //       productOrder.quantityOrdered,
-  //     );
-  //   }
+    for (const productOrder of createRequest.orderDetails) {
+      await this.checkIfProductExists(
+        productOrder.productId,
+        productOrder.quantityOrdered,
+      );
+    }
 
-  //   const { orderDetails, ...orderData } = createRequest;
+    // const { orderDetails, ...orderData } = createRequest;
 
-  //   const order = await this.prismaService.order.create({
-  //     data: {
-  //       ...orderData,
-  //       username: username,
-  //     },
-  //   });
+    // const order = await this.prismaService.order.create({
+    //   data: {
+    //     ...orderData,
+    //     username: username,
+    //   },
+    // });
 
-  //   return this.toOrderResponse(order);
-  // }
+    // for (const productOrder of orderDetails) {
+    //   await this.prismaService.orderDetail.create({
+    //     data: {
+    //       ...productOrder,
+    //       orderId: order.id,
+    //     },
+    //   });
+    // }
 
-  // async userGetOrder(
-  //   username: string,
-  //   orderId: number,
-  //   admin: boolean = false,
-  // ): Promise<OrderResponse> {
-  //   this.logger.debug(`${username} is getting order ${orderId}`);
+    const { orderDetails, ...orderData } = createRequest;
 
-  //   const order = await this.prismaService.order.findUnique({
-  //     where: { id: orderId, username: admin ? undefined : username },
-  //     include: { orderDetails: true },
-  //   });
+    const order = await this.prismaService.order.create({
+      data: {
+        ...orderData,
+        username: username,
+      },
+    });
 
-  //   if (!order) {
-  //     throw new HttpException('Order not found', HttpStatus.NOT_FOUND);
-  //   }
+    const resolvedOrderDetails = await Promise.all(orderDetails);
 
-  //   return this.toOrderResponse(order);
-  // }
+    const orderDetailsWithOrderId = resolvedOrderDetails.map((detail) => ({
+      ...detail,
+      orderId: order.id,
+    }));
+
+    await this.prismaService.orderDetail.createMany({
+      data: orderDetailsWithOrderId,
+    });
+
+    return this.userGetOrder(username, order.id);
+  }
+
+  async userGetOrder(
+    username: string,
+    orderId: number,
+    admin: boolean = false,
+  ): Promise<OrderResponse> {
+    this.logger.debug(`${username} is getting order ${orderId}`);
+
+    const order = await this.prismaService.order.findUnique({
+      where: { id: orderId, username: admin ? undefined : username },
+      include: { orderDetails: true },
+    });
+
+    if (!order) {
+      throw new HttpException('Order not found', HttpStatus.NOT_FOUND);
+    }
+
+    return this.toOrderResponse(order);
+  }
 
   // async userUpdateOrder(
   //   username: string,
@@ -131,38 +160,38 @@ export class OrderService {
   // //     return this.toOrderResponse(order);
   // //   }
 
-  // async checkIfShipperExists(shipperId: number): Promise<boolean> {
-  //   const shipper = await this.prismaService.shipper.findUnique({
-  //     where: { id: shipperId },
-  //   });
-  //   return shipper ? true : false;
-  // }
-
   // async adminUpdateOrder() {}
 
   // async adminDeleteOrder() {}
 
-  // async checkIfProductExists(
-  //   productId: number,
-  //   quantityOrdered: number,
-  // ): Promise<boolean> {
-  //   const product = await this.prismaService.product.findUnique({
-  //     where: { id: productId },
-  //   });
-  //   if (!product) {
-  //     throw new HttpException(
-  //       `Product ${productId} not found`,
-  //       HttpStatus.NOT_FOUND,
-  //     );
-  //   }
-  //   if (product.quantityInStock < quantityOrdered) {
-  //     throw new HttpException(
-  //       `Product ${productId} not enough in stock`,
-  //       HttpStatus.BAD_REQUEST,
-  //     );
-  //   }
-  //   return true;
-  // }
+  async checkIfShipperExists(shipperId: number): Promise<boolean> {
+    const shipper = await this.prismaService.shipper.findUnique({
+      where: { id: shipperId },
+    });
+    return shipper ? true : false;
+  }
+
+  async checkIfProductExists(
+    productId: number,
+    quantityOrdered: number,
+  ): Promise<boolean> {
+    const product = await this.prismaService.product.findUnique({
+      where: { id: productId },
+    });
+    if (!product) {
+      throw new HttpException(
+        `Product ${productId} not found`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    if (product.quantityInStock < quantityOrdered) {
+      throw new HttpException(
+        `Product ${productId} not enough in stock`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    return true;
+  }
 
   toOrderResponse(order: OrderResponse): OrderResponse {
     return {

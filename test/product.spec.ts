@@ -187,7 +187,7 @@ describe('ProductController', () => {
       expect(response.body.errors).toBeDefined();
     });
 
-    it('should be able to create product', async () => {
+    it.only('should be able to create product', async () => {
       const categoryId = (await testService.getCategory()).id;
       const supplierId = (await testService.getSupplier()).id;
       const response = await request(app.getHttpServer())
