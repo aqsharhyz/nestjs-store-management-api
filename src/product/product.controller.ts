@@ -2,15 +2,22 @@ import {
   Body,
   Controller,
   Delete,
+  FileTypeValidator,
+  FileTypeValidatorOptions,
   Get,
   HttpCode,
   HttpStatus,
+  MaxFileSizeValidator,
+  MaxFileSizeValidatorOptions,
   Param,
+  ParseFilePipe,
   ParseIntPipe,
   Patch,
   Post,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { Auth } from '../common/auth.decorator';
@@ -22,6 +29,8 @@ import {
 } from './product.model';
 import { WebResponse } from '../common/web.model';
 import { AdminGuard } from '../common/admin.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
 
 @Controller('/api/products')
 export class ProductController {
@@ -29,15 +38,45 @@ export class ProductController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @UseGuards(AdminGuard)
+  // @UseGuards(AdminGuard)
+  // @UseInterceptors(FileInterceptor('product_image'))
+  @UseInterceptors(
+    FileInterceptor('product_image', {
+      storage: diskStorage({
+        destination: './storage/upload/product_images/',
+        filename: (req, file, cb) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, file.fieldname + '-' + uniqueSuffix);
+        },
+      }),
+    }),
+  )
   async createProduct(
-    @Auth('username') username: string,
-    @Body() request: CreateProductRequest,
-  ): Promise<WebResponse<ProductResponse>> {
-    const product = await this.productService.createProduct(username, request);
-    return {
-      data: product,
-    };
+    // @Auth('username') username: string,
+    // @Body() request: CreateProductRequest,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({
+            maxSize: 1024 * 1024 * 10,
+            message: 'Product image must not exceed 10MB',
+          } as MaxFileSizeValidatorOptions),
+          new FileTypeValidator({
+            fileType: /image\/(png|jpg|jpeg)/,
+          }),
+        ],
+      }),
+    )
+    image: Express.Multer.File,
+    // ): Promise<WebResponse<ProductResponse>> {
+  ) {
+    // const product = await this.productService.createProduct(username, request);
+    // return {
+    //   data: product,
+    // };
+
+    return image.stream;
   }
 
   @Get('/:productId')

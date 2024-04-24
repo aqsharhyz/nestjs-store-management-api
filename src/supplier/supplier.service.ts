@@ -134,11 +134,11 @@ export class SupplierService {
       name: supplier.name,
       phone: supplier.phone,
       address: supplier.address,
-      products: withProducts
-        ? supplier.products.map((product) =>
-            this.productService.toProductResponse(product),
-          )
-        : undefined,
+      // products: withProducts
+      //   ? supplier.products.map((product) =>
+      //       this.productService.toProductResponse(product),
+      //     )
+      //   : undefined,
     };
   }
 }

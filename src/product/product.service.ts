@@ -52,7 +52,7 @@ export class ProductService {
 
     const checkCategory = await this.prismaService.category.findFirst({
       where: {
-        id: createRequest.categoryId,
+        id: createRequest.category_id,
       },
     });
 
@@ -62,7 +62,7 @@ export class ProductService {
 
     const checkSupplier = await this.prismaService.supplier.findFirst({
       where: {
-        id: createRequest.supplierId,
+        id: createRequest.supplier_id,
       },
     });
 
@@ -71,7 +71,9 @@ export class ProductService {
     }
 
     const product = await this.prismaService.product.create({
-      data: createRequest,
+      data: {
+        ...createRequest,
+      },
     });
 
     return this.toProductResponse(product);
@@ -142,8 +144,8 @@ export class ProductService {
 
     //supplier
 
-    //   categoryId?: number;
-    //   supplierId?: number;
+    //   category_id?: number;
+    //   supplier_id?: number;
 
     const skip = (searchRequest.page - 1) * searchRequest.size;
 
@@ -277,10 +279,10 @@ export class ProductService {
       }
     }
 
-    if (updateRequest.categoryId) {
+    if (updateRequest.category_id) {
       const checkCategory = await this.prismaService.category.findFirst({
         where: {
-          id: updateRequest.categoryId,
+          id: updateRequest.category_id,
         },
       });
 
@@ -289,10 +291,10 @@ export class ProductService {
       }
     }
 
-    if (updateRequest.supplierId) {
+    if (updateRequest.supplier_id) {
       const checkSupplier = await this.prismaService.supplier.findFirst({
         where: {
-          id: updateRequest.supplierId,
+          id: updateRequest.supplier_id,
         },
       });
 
@@ -330,7 +332,7 @@ export class ProductService {
         id: productId,
       },
       data: {
-        quantityInStock: updateRequest.quantity,
+        stock: updateRequest.quantity,
       },
     });
 
@@ -364,7 +366,7 @@ export class ProductService {
     return this.toProductResponse(product);
   }
 
-  toProductResponse(product: ProductResponse): ProductResponse {
+  toProductResponse(product: Product): ProductResponse {
     return product;
     // return {
     //   id: product.id,
@@ -372,7 +374,7 @@ export class ProductService {
     //   name: product.name,
     //   description: product.description,
     //   price: product.price,
-    //   quantityInStock: product.quantityInStock,
+    //   stock: product.quantityInStock,
     // };
   }
 }

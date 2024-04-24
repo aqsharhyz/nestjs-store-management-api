@@ -1,4 +1,5 @@
 import { CategoryResponse } from '../category/category.model';
+import { SupplierResponse } from '../supplier/supplier.model';
 
 export class ProductResponse {
   id: number;
@@ -6,13 +7,15 @@ export class ProductResponse {
   name: string;
   price: number;
   description: string;
-  quantityInStock: number;
-  categoryId?: number;
+  weight: number;
+  stock: number;
+  product_image: string;
+  category_id: number;
   category?: CategoryResponse;
-  supplierId?: number;
-  //   supplier?: SupplierResponse;
-  createdAt?: Date;
-  updatedAt?: Date;
+  supplier_id?: number;
+  supplier?: SupplierResponse;
+  created_at?: Date;
+  updated_at?: Date;
 }
 
 export class CreateProductRequest {
@@ -20,9 +23,11 @@ export class CreateProductRequest {
   name: string;
   price: number;
   description: string;
-  quantityInStock: number;
-  categoryId: number;
-  supplierId: number;
+  weight: number;
+  stock: number;
+  product_image: string;
+  category_id: number;
+  supplier_id: number;
 }
 
 export class updateProductRequest {
@@ -30,9 +35,11 @@ export class updateProductRequest {
   name?: string;
   price?: number;
   description?: string;
-  quantityInStock?: number;
-  categoryId?: number;
-  supplierId?: number;
+  weight?: number;
+  stock?: number;
+  product_image: string;
+  category_id?: number;
+  supplier_id?: number;
 }
 
 export class updateProductStockRequest {
@@ -44,9 +51,10 @@ export class SearchProductRequest {
   name?: string;
   price?: number;
   description?: string;
-  quantityInStock?: number;
-  categoryId?: number;
-  supplierId?: number;
+  weight?: number;
+  stock?: number;
+  category_id?: number;
+  supplier_id?: number;
   page?: number;
   size?: number;
   sort?: string;

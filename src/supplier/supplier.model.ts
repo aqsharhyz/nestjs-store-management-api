@@ -1,4 +1,4 @@
-import { ProductResponse } from 'src/product/product.model';
+import { ProductResponse } from '../product/product.model';
 import { Supplier } from '@prisma/client';
 
 export class SupplierResponse implements Supplier {

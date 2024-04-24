@@ -6,9 +6,11 @@ export class ProductValidation {
     name: z.string().min(3).max(100),
     price: z.number().positive().max(1000000000),
     description: z.string().min(3).max(500),
-    quantityInStock: z.number().int().positive().max(100000),
-    categoryId: z.number().int().positive(),
-    supplierId: z.number().int().positive(),
+    weight: z.number().positive().max(1_000_000_000),
+    stock: z.number().int().positive().max(100000),
+    product_image: z.string(),
+    category_id: z.number().int().positive(),
+    supplier_id: z.number().int().positive(),
   });
 
   static readonly UPDATE: ZodType = z.object({
@@ -16,9 +18,11 @@ export class ProductValidation {
     name: z.string().min(3).max(100).optional(),
     price: z.number().positive().max(1000000000).optional(),
     description: z.string().min(3).max(500).optional(),
-    quantityInStock: z.number().int().positive().max(100000).optional(),
-    categoryId: z.number().int().positive().optional(),
-    supplierId: z.number().int().positive().optional(),
+    weight: z.number().positive().max(1_000_000_000).optional(),
+    stock: z.number().int().positive().max(100000).optional(),
+    product_image: z.string().optional(),
+    category_id: z.number().int().positive().optional(),
+    supplier_id: z.number().int().positive().optional(),
   });
 
   static readonly UPDATE_STOCK: ZodType = z.object({
@@ -30,9 +34,10 @@ export class ProductValidation {
     name: z.string().min(3).max(100).optional(),
     price: z.number().positive().max(1000000000).optional(),
     description: z.string().min(3).max(500).optional(),
-    quantityInStock: z.number().int().positive().max(100000).optional(),
-    categoryId: z.number().int().positive().optional(),
-    supplierId: z.number().int().positive().optional(),
+    weight: z.number().positive().max(1_000_000_000).optional(),
+    stock: z.number().int().positive().max(100000).optional(),
+    category_id: z.number().int().positive().optional(),
+    supplier_id: z.number().int().positive().optional(),
     page: z.number().int().positive().optional().default(1),
     size: z.number().int().positive().optional().default(10),
     sort: z.string().optional(),
