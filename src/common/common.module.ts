@@ -15,8 +15,44 @@ import { ErrorFilter } from './error.filter';
   imports: [
     WinstonModule.forRoot({
       level: 'debug',
-      format: winston.format.json(),
-      transports: [new winston.transports.Console()],
+      transports: [
+        new winston.transports.Console({
+          format: winston.format.combine(
+            winston.format.colorize(),
+            winston.format.timestamp(),
+            winston.format.ms(),
+            winston.format.printf(({ level, message, timestamp, ms }) => {
+              return `${timestamp} |${ms}| [${level}] ${message}`;
+            }),
+          ),
+        }),
+        new winston.transports.File({
+          filename: 'dev/logs/error.log',
+          level: 'error',
+          handleExceptions: true,
+          handleRejections: true,
+          format: winston.format.combine(
+            winston.format.timestamp(),
+            winston.format.ms(),
+            winston.format.printf(({ level, message, timestamp, ms }) => {
+              return `${timestamp} |${ms}| [${level}] ${message}`;
+            }),
+          ),
+        }),
+        new winston.transports.File({
+          filename: 'dev/logs/app.log',
+          level: 'debug',
+          handleExceptions: true,
+          handleRejections: true,
+          format: winston.format.combine(
+            winston.format.timestamp(),
+            winston.format.ms(),
+            winston.format.printf(({ level, message, timestamp, ms }) => {
+              return `${timestamp} |${ms}| [${level}] ${message}`;
+            }),
+          ),
+        }),
+      ],
     }),
     ConfigModule.forRoot({
       isGlobal: true,
