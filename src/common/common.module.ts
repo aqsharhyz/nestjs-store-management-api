@@ -7,8 +7,6 @@ import * as winston from 'winston';
 import { AuthMiddleware } from './auth.middleware';
 import { APP_FILTER } from '@nestjs/core';
 import { ErrorFilter } from './error.filter';
-// import { AdminGuard } from './admin.guard';
-// import { AuthGuard } from './auth.guard';
 
 @Global()
 @Module({

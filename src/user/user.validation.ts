@@ -5,13 +5,19 @@ function phoneNumberVerification(value: string): boolean {
 }
 
 function passwordValidation(password: string): boolean {
-  // Implement your password validation logic here
-  // For example, you can check if the password contains at least one digit, one lowercase letter, one uppercase letter, and one special character:
   return (
+    // Password must contain at least one digit
     /\d/.test(password) &&
+    // Password must contain at least one lowercase letter
     /[a-z]/.test(password) &&
+    // Password must contain at least one uppercase letter
     /[A-Z]/.test(password) &&
-    /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/.test(password)
+    // Password must contain at least one special character
+    /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/.test(password) &&
+    // Password must not contain any whitespace
+    !/\s/.test(password)
+    // Password must not contain substring of username
+    // !password.toLowerCase().includes(username.toLowerCase())
   );
 }
 
